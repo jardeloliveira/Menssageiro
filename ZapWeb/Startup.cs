@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ZapWeb.BancoDados;
+using ZapWeb.Hubs;
 
 namespace ZapWeb
 {
@@ -31,6 +32,8 @@ namespace ZapWeb
             {
                 cfg.UseSqlite("Data Source = BancoDados\\ZapWeb.db");
             });
+
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,6 +61,8 @@ namespace ZapWeb
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Login}/{id?}");
+
+                endpoints.MapHub<ZapWebHub>("/ZapWebHub");
             });
         }
     }
