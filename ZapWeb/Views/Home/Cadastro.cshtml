@@ -1,0 +1,45 @@
+﻿
+@{
+    ViewData["Title"] = "Cadastro";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="~/css/site.css" />
+    <title>ZapWeb</title>
+
+    @section style{
+
+        <style type="text/css">
+            body {
+                background-color: #32A060;
+            }
+
+            input[type=text] {
+                max-width: 690px;
+            }
+        </style>
+    }
+
+</head>
+<body>
+    <div class="container-login">
+        <img src="~/Imagem/logo.png" />
+        <h1>ZapWeb</h1>
+        <div class="container-form">
+            <input type="text" placeholder="Nome" />
+            <br />
+            <input type="text" placeholder="E-mail" />
+            <br />
+            <input type="text" placeholder="Senha" />
+
+            <div class="container-button">
+                <input type="button" value="CADASTRAR" />
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

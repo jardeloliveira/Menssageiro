@@ -1,0 +1,14 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link href="~/css/site.css" rel="stylesheet" />
+    @RenderSection("style", required: false);
+</head>
+<body>
+
+  @RenderBody() 
+<script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+<script src="~/js/site.js"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>
