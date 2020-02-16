@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ZapWeb.BancoDados;
@@ -45,6 +47,56 @@ namespace ZapWeb.Hubs
                 await Clients.Caller.SendAsync("ReceberLogin", true, result, null);
             }
 
+        }
+
+        public async Task AddConnectionIdDoUsuario (Usuarios usuarios)
+        {
+            var connectioIdCurrent = Context.ConnectionId;
+            var result = _context.Usuarios.Find(usuarios.Id);
+            List<string> listConnectionsId = null;
+            if (result.ConnectionId == null)
+            {
+                listConnectionsId = new List<string>();
+                listConnectionsId.Add(connectioIdCurrent);
+               
+            }
+            else
+            {
+                
+                 listConnectionsId = JsonConvert.DeserializeObject<List<string>>(result.ConnectionId);
+                if (!listConnectionsId.Contains(connectioIdCurrent))
+                {
+                    listConnectionsId.Add(connectioIdCurrent);
+                }
+                
+
+            }
+            result.ConnectionId = JsonConvert.SerializeObject(listConnectionsId);
+            _context.Usuarios.Update(result);
+            _context.SaveChanges();
+        }
+        public async Task DelConnectionIdDoUsuario(Usuarios usuarios)
+        {
+            var result = _context.Usuarios.Find(usuarios.Id);
+            if (result.ConnectionId.Length > 0)
+            {
+                var connectioIdCurrent = Context.ConnectionId;
+                var listConnectionsId = JsonConvert.DeserializeObject<List<string>>(result.ConnectionId);
+                if (listConnectionsId.Contains(connectioIdCurrent))
+                {
+                    listConnectionsId.Remove(connectioIdCurrent);
+                }
+                result.ConnectionId = JsonConvert.SerializeObject(listConnectionsId);
+                _context.Usuarios.Update(result);
+                _context.SaveChanges();
+
+            }
+        }
+
+        public async Task ObterListUsuarios()
+        {
+            var usuarios = _context.Usuarios.ToList();
+            await Clients.Caller.SendAsync("ReceberListUsuarios",usuarios);
         }
     }
 

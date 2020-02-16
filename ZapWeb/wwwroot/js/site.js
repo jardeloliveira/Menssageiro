@@ -5,6 +5,7 @@ function ConnectionStart() {
     connection.start().then(function () {
         HabilitarCadastro();
         HabilitarLogin();
+        HabilitarConversacao();
         console.info("Connected!");
     }).catch(function (err) {
         console.error(err.toString());
@@ -49,6 +50,9 @@ function HabilitarCadastro() {
 function HabilitarLogin() {
     var form = document.getElementById("form_login");
     if (form !== null) {
+        if (GetUsuarioLogado() !== null) {
+            window.location.href = "/Home/Conversacao";
+        }
         var btnAcessar = document.getElementById("btnAcessar");
         btnAcessar.addEventListener("click", function () {
 
@@ -72,16 +76,54 @@ function HabilitarLogin() {
             }
 
         });
- }
+}
+var telaConversacao = document.getElementById("tela-conversacao");
+if (telaConversacao !== null) {
 
-  
-
-    function GetUsuarioLogado() {
-        return JSON.parse(sessionStorage.getItem("Logado"));
+    if (GetUsuarioLogado() === null) {
+        window.location.href = "/Home/Login";
     }
-    function SetUsuarioLogado(usuario) {
-        sessionStorage.setItem("Logado", JSON.stringify(usuario));
+}
+
+function HabilitarConversacao() {
+    MonitorarConnectionId();
+    MonitorarListaUsuarios();
+}
+function MonitorarListaUsuarios() {
+    connection.invoke("ObterListUsuarios");
+    connection.on("ReceberListUsuarios", function (usuarios) {
+        var html = "";
+        for (var i = 0; i < usuarios.length; i++) {
+            html += '<div class="container-user-item"><img src="/Home/Imagem/logo.png" style="width: 20%;" /><div><span>' + usuarios[i].nome +'</span ><br/> <span class="email">' + usuarios[i].email + '</span></div ></div > ';
+        }
+        document.getElementById("users").innerHTML = html;
+    });
+}
+function MonitorarConnectionId() {
+    var telaConversacao = document.getElementById("tela-conversacao");
+    if (telaConversacao !== null) {
+
+        connection.invoke("AddConnectionIdDoUsuario", GetUsuarioLogado());
+
+        var btnSair = document.getElementById("btnSair");
+        btnSair.addEventListener("click", function () {
+            connection.invoke("DelConnectionIdDoUsuario", GetUsuarioLogado()).then(() => function () {
+                DelUsuarioLogado();
+                window.location.href = "/Home/Login";
+            });
+
+        });
     }
+}
 
 
+function GetUsuarioLogado() {
+    return JSON.parse(sessionStorage.getItem("Logado"));
+}
+function SetUsuarioLogado(usuario) {
+    sessionStorage.setItem("Logado", JSON.stringify(usuario));
+}
+function DelUsuarioLogado() {
+    sessionStorage.removeItem("Logado");
+}
 ConnectionStart();
