@@ -94,7 +94,10 @@ function MonitorarListaUsuarios() {
     connection.on("ReceberListUsuarios", function (usuarios) {
         var html = "";
         for (var i = 0; i < usuarios.length; i++) {
-            html += '<div class="container-user-item"><img src="/Home/Imagem/logo.png" style="width: 20%;" /><div><span>' + usuarios[i].nome +'</span ><br/> <span class="email">' + usuarios[i].email + '</span></div ></div > ';
+
+            if (usuarios[i].id !== GetUsuarioLogado().id) {
+                html += '<div class="container-user-item"><img src = "/imagem/logo.png" style = "width: 20%;" /><div><span>' + usuarios[i].nome + ' (' + (usuarios[i].isOnline ? "online" : "offline") + ')</span><br /><span class="email">' + usuarios[i].email + '</span></div></div>';
+            }
         }
         document.getElementById("users").innerHTML = html;
     });
@@ -107,7 +110,7 @@ function MonitorarConnectionId() {
 
         var btnSair = document.getElementById("btnSair");
         btnSair.addEventListener("click", function () {
-            connection.invoke("DelConnectionIdDoUsuario", GetUsuarioLogado()).then(() => function () {
+            connection.invoke("Logout", GetUsuarioLogado()).then(() => function () {
                 DelUsuarioLogado();
                 window.location.href = "/Home/Login";
             });

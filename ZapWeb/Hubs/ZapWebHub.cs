@@ -45,8 +45,24 @@ namespace ZapWeb.Hubs
             else
             {
                 await Clients.Caller.SendAsync("ReceberLogin", true, result, null);
+                usuarios.IsOnline = true;
+                _context.Usuarios.Update(usuarios);
+                _context.SaveChanges();
+
+                await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.ToList());
             }
 
+        }
+        public async Task Logout(Usuarios usuarios)
+        {
+            var result = _context.Usuarios.Find(usuarios.Id);
+            result.IsOnline = false;
+            _context.Usuarios.Update(result);
+            _context.SaveChanges();
+
+            await DelConnectionIdDoUsuario(result);
+
+            await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.ToList());
         }
 
         public async Task AddConnectionIdDoUsuario (Usuarios usuarios)
