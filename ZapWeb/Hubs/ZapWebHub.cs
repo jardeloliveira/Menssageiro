@@ -49,7 +49,7 @@ namespace ZapWeb.Hubs
                 _context.Usuarios.Update(usuarios);
                 _context.SaveChanges();
 
-                await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.ToList());
+                await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.Where(u => u.Nome != null).ToList());
             }
 
         }
@@ -62,7 +62,7 @@ namespace ZapWeb.Hubs
 
             await DelConnectionIdDoUsuario(result);
 
-            await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.ToList());
+            await Clients.All.SendAsync("ReceberListUsuarios", _context.Usuarios.Where(u=>u.Nome != null).ToList());
         }
 
         public async Task AddConnectionIdDoUsuario (Usuarios usuarios)
@@ -112,7 +112,7 @@ namespace ZapWeb.Hubs
         public async Task ObterListUsuarios()
         {
             var usuarios = _context.Usuarios.ToList();
-            await Clients.Caller.SendAsync("ReceberListUsuarios",usuarios);
+            await Clients.Caller.SendAsync("ReceberListUsuarios",usuarios.Where(u => u.Nome != null));
         }
     }
 

@@ -100,6 +100,15 @@ function MonitorarListaUsuarios() {
             }
         }
         document.getElementById("users").innerHTML = html;
+        var container_usuarios = document.getElementById("users").querySelectorAll("container-user-item");
+        for (var i = 0; i < container_usuarios.length; i++) {
+
+            container_usuarios[i].addEventListener("click", function (event) {
+                var componente = event.target || event.srcElement;
+                componente.parentElement.querySelector(".email").innerText;
+
+            });
+        }
     });
 }
 function MonitorarConnectionId() {
