@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ZapWeb.Models
 {
@@ -6,7 +7,10 @@ namespace ZapWeb.Models
     {
         public int Id { get; set; }
         public string Grupo { get; set; }
-        public string Usuario { get; set; }
+        public int UsuarioId { get; set; }
+        public string UsuarioJson { get; set; }
+        [NotMapped]
+        public Usuarios Usuario { get; set; }
         public string Texto { get; set; }
         public DateTime? DataCriacao { get; set; }
     }

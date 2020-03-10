@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using ZapWeb.BancoDados;
 using ZapWeb.Models;
@@ -90,6 +92,17 @@ namespace ZapWeb.Hubs
             result.ConnectionId = JsonConvert.SerializeObject(listConnectionsId);
             _context.Usuarios.Update(result);
             _context.SaveChanges();
+
+            //Adicionar usuario no grupo
+            var grupos = _context.Grupos.Where(a=>a.Usuarios.Contains(result.Email));
+            foreach (var item in listConnectionsId)
+            {
+                foreach (var grupo in grupos)
+                {
+                   await Groups.AddToGroupAsync(item,grupo.Nome);
+                }
+               
+            }
         }
         public async Task DelConnectionIdDoUsuario(Usuarios usuarios)
         {
@@ -105,6 +118,17 @@ namespace ZapWeb.Hubs
                 result.ConnectionId = JsonConvert.SerializeObject(listConnectionsId);
                 _context.Usuarios.Update(result);
                 _context.SaveChanges();
+               
+                //Remoção do grupo
+                var grupos = _context.Grupos.Where(a => a.Usuarios.Contains(result.Email));
+                foreach (var item in listConnectionsId)
+                {
+                    foreach (var grupo in grupos)
+                    {
+                        await Groups.RemoveFromGroupAsync(item, grupo.Nome);
+                    }
+
+                }
 
             }
         }
@@ -113,6 +137,82 @@ namespace ZapWeb.Hubs
         {
             var usuarios = _context.Usuarios.ToList();
             await Clients.Caller.SendAsync("ReceberListUsuarios",usuarios.Where(u => u.Nome != null));
+        }
+
+        public async Task CriarOuAbrirGrupo(string emailUsuarioUm, string emailUsuarioDois)
+        {
+            var nomeGrupo = CriarNomeGrupo(emailUsuarioUm, emailUsuarioDois);
+            var grupo = _context.Grupos.FirstOrDefault(a => a.Nome == nomeGrupo);
+
+            if (grupo == null)
+            {
+                grupo = new Grupos
+                {
+                    Nome = nomeGrupo,
+                    Usuarios = JsonConvert.SerializeObject(new List<string>()
+                    {
+                        emailUsuarioUm,
+                        emailUsuarioDois
+
+                    })
+                };
+                _context.Grupos.Add(grupo);
+                _context.SaveChanges();
+
+
+            }
+            var emails = JsonConvert.DeserializeObject<List<string>>(grupo.Usuarios);
+            var usuarios = new List<Usuarios>
+            {
+                _context.Usuarios.First(a => a.Email == emails[0]),
+                _context.Usuarios.First(a => a.Email == emails[1])
+
+            };
+            foreach (var user in usuarios)
+            {
+                var connectionId = JsonConvert.DeserializeObject<List<Usuarios>>(user.ConnectionId);
+                foreach (var item in connectionId)
+                {
+                    await Groups.AddToGroupAsync(item.ConnectionId, nomeGrupo);
+                }
+            }
+            await Clients.Caller.SendAsync("AbrirGrupo", nomeGrupo);
+        }
+        public async Task EnviarMessagem(Usuarios usuarios, string mensagem,string nomeGrupo)
+        {
+            Grupos grupos = _context.Grupos.FirstOrDefault(g => g.Nome == nomeGrupo);
+            if (!grupos.Usuarios.Contains(usuarios.Email))
+            {
+                throw new Exception("Usuário não pertence ao grupo!");
+            }
+
+            var msg = new Mensagem
+            {
+                 Grupo = nomeGrupo,
+                 Texto = mensagem,
+                 UsuarioId = usuarios.Id,
+                 UsuarioJson = JsonConvert.SerializeObject(usuarios),
+                 Usuario = usuarios,
+                 DataCriacao = DateTime.Now
+                 
+            };
+
+            _context.Mensagem.Add(msg);
+            _context.SaveChanges();
+
+
+            await Clients.Group(nomeGrupo).SendAsync("ReceberMensagem", msg);
+
+        }
+        private string CriarNomeGrupo(string emailUsuarioUm, string emailUsuarioDois)
+        {
+            var list = new List<string> {emailUsuarioUm, emailUsuarioDois }.OrderBy(a=>a).ToList();
+            var sb = new StringBuilder();
+            foreach (var item in list)
+            {
+                sb.Append(item);
+            }
+            return sb.ToString();
         }
     }
 

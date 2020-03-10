@@ -1,6 +1,6 @@
 ﻿/*Conexão e reconexão signalr */
 var connection = new signalR.HubConnectionBuilder().withUrl("/ZapWebHub").build();
-
+var nomeGrupo = "";
 function ConnectionStart() {
     connection.start().then(function () {
         HabilitarCadastro();
@@ -88,6 +88,23 @@ if (telaConversacao !== null) {
 function HabilitarConversacao() {
     MonitorarConnectionId();
     MonitorarListaUsuarios();
+    EnviarReceberMensagem();
+    AbrirGrupo();
+}
+function AbrirGrupo() {
+    connection.on("AbrirGrupo", function (nomeGrupo) {
+
+        nomeGrupo = nomeGrupo;
+
+    });
+}
+function EnviarReceberMessagem() {
+    var btnEnviar = document.getElementById("btnEnviar");
+    btnEnviar.addEventListener("click", function () {
+    var mensagem = document.getElementById("mensagem");
+        var usuario = GetUsuarioLogado();
+        connection.invoke("EnviarMensagem",usuarios, mensagem, nomeGrupo);
+    });
 }
 function MonitorarListaUsuarios() {
     connection.invoke("ObterListUsuarios");
@@ -105,7 +122,10 @@ function MonitorarListaUsuarios() {
 
             container_usuarios[i].addEventListener("click", function (event) {
                 var componente = event.target || event.srcElement;
-                componente.parentElement.querySelector(".email").innerText;
+                var emailUsuarioUm = GetUsuarioLogado().email;
+                var emailUsuarioDois = componente.parentElement.querySelector(".email").innerText;
+
+                connection.invoke("CriarOuAbrirGrupo", emailUsuarioUm, emailUsuarioDois);
 
             });
         }
